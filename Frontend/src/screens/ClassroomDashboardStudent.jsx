@@ -7,104 +7,62 @@ import Test from '../components/Test';
 
 export default function ClassroomDashboardStudent() {
   const [tests, setTests] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [newTest, setNewTest] = useState({
-    name: '',
-    description: '',
-    max_marks: 100,
-    schedule_time: '',
-  });
-  const [activeTab, setActiveTab] = useState('upcoming'); 
+  const [studentClassId, setStudentClassId] = useState(null);
+  const [activeTab, setActiveTab] = useState('upcoming');
   const navigate = useNavigate();
 
-  // Fetch the list of tests
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStudentClassId = async () => {
       try {
-        const data = {
-          classroom_id: localStorage.getItem('classroom_id'),
-        };
-        console.log(data);
+        const studentId = localStorage.getItem('student_id');
+        const data = { student_id: studentId };
+        const response = await axios.post(
+          `${import.meta.env.VITE_BACKEND_SERVICE_URL}student/get_student_class_id/`,
+          data
+        );
+
+        // Parse response to extract class ID
+        const classId = response.data.data[0][0];
+        setStudentClassId(classId !== 'unassigned' ? classId : 'Unassigned');
+      } catch (error) {
+        console.error('Error fetching student class ID:', error);
+        setStudentClassId('Error fetching class ID');
+      }
+    };
+
+    fetchStudentClassId();
+  }, []);
+
+  useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const classroomId = localStorage.getItem('classroom_id');
+        const data = { classroom_id: classroomId };
         const response = await axios.post(
           `${import.meta.env.VITE_BACKEND_SERVICE_URL}service/tests_by_date/`,
           data
         );
 
-        // Map the data format correctly
         const formattedTests = response.data.data.upcoming_tests.map((test) => ({
           id: test[0],
           classroomId: test[1],
           name: test[2],
           description: test[3],
           maxMarks: test[4],
-          scheduleTime: test[5].replace('T', ' '), // Replace "T" with a space for display
+          scheduleTime: test[5].replace('T', ' '),
           createdAt: test[6],
         }));
         setTests(formattedTests);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching tests:', error);
         alert('Failed to Get Dashboard!');
       }
     };
-    fetchData();
+
+    fetchTests();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    setNewTest((prevState) => {
-      if (name === 'schedule_time') {
-        const [date, time] = value.split('T');
-        const timeWithSeconds = time.split(':').slice(0, 2).join(':') + ':00'; // Add "00" as seconds
-        return {
-          ...prevState,
-          [name]: `${date} ${timeWithSeconds}`, // Replace "T" with a space
-        };
-      }
-
-      return {
-        ...prevState,
-        [name]: name === 'max_marks' ? parseInt(value, 10) : value,
-      };
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const data = {
-        ...newTest,
-        classroom_id: localStorage.getItem('classroom_id'),
-        teacher_id: localStorage.getItem('teacher_id'),
-      };
-      console.log(data);
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_SERVICE_URL}teacher/create_test/`,
-        data
-      );
-      alert('Test created successfully!');
-      setShowForm(false);
-
-      // Update the test list with the new test
-      const newTestFormatted = {
-        id: response.data.data.id,
-        classroomId: response.data.data.classroom_id,
-        name: response.data.data.name,
-        description: response.data.data.description,
-        maxMarks: response.data.data.max_marks,
-        scheduleTime: response.data.data.schedule_time.replace('T', ' '),
-        createdAt: response.data.data.created_at,
-      };
-      setTests([...tests, newTestFormatted]);
-    } catch (error) {
-      console.error('Error creating test:', error);
-      alert('Failed to create test!');
-    }
-  };
-
   const currentDateTime = new Date();
-
-  // Filter tests
   const upcomingTests = tests.filter(
     (test) => new Date(test.scheduleTime) >= currentDateTime
   );
@@ -116,6 +74,17 @@ export default function ClassroomDashboardStudent() {
     <div className="min-h-screen w-screen bg-gradient-to-b from-gray-200 via-cyan-100 to-gray-200">
       <div className="w-screen px-12 pt-4">
         <Navbar />
+      </div>
+
+      {/* Student Class ID Section */}
+      <div className="text-center my-4">
+        {studentClassId ? (
+          <p className="text-xl font-semibold">
+            Class ID: {studentClassId}
+          </p>
+        ) : (
+          <p className="text-xl font-semibold">Loading class information...</p>
+        )}
       </div>
 
       {/* Tabs for Upcoming and Past Tests */}
@@ -160,7 +129,6 @@ export default function ClassroomDashboardStudent() {
           )}
         </div>
       </div>
-
     </div>
   );
 }
