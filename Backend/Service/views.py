@@ -11,7 +11,11 @@ from datetime import datetime
 import json
 import uuid
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
+
+postgres_endpoint = os.getenv('POSTGRE_SQL_ENDPOINT')
 # Create your views here.
 def ensure(request):
     try:
@@ -37,7 +41,7 @@ def get_classrooms(request):
         insert_query = '''
             select * from classrooms where teacher_id = %s;
         '''
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(insert_query, (req_data["teacher_id"],))
         data = cur.fetchall()
@@ -70,7 +74,7 @@ def get_student_classrooms(request):
             );
         '''
         print(req_data)
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(insert_query, (req_data["student_id"],))
         data = cur.fetchall()
@@ -96,7 +100,7 @@ def get_tests(request):
         insert_query = '''
             select * from tests where classroom_id = %s;
         '''
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(insert_query, (req_data["classroom_id"],))
         data = cur.fetchall()
@@ -133,7 +137,7 @@ def get_tests_by_date(request):
             ORDER BY schedule_time DESC
         '''
 
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
 
         cur.execute(upcoming_tests_query, (classroom_id, today))
@@ -185,7 +189,7 @@ def get_classroom_students(request):
             ); 
         '''
 
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         
         cur.execute(fetch_classroom_students_query, (req_data["classroom_id"],))
@@ -227,7 +231,7 @@ def fetch_test_details(request):
             on t.student_id = s.student_id
             where t.test_id = %s; 
         '''
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         
         cur.execute(fetch_test_details_query, (req_data["test_id"],))

@@ -11,6 +11,9 @@ from datetime import datetime
 import json
 import uuid
 import os
+from dotenv import load_dotenv
+load_dotenv()
+postgres_endpoint = os.getenv('POSTGRE_SQL_ENDPOINT')
 
 # Create your views here.
 def ensure(request):
@@ -48,7 +51,7 @@ def register(request):
                 req_data["email"], 
                 hashed_password
                 )
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(insert_query, data)
         conn.commit()
@@ -70,7 +73,7 @@ def login(request):
             if key not in req_data.keys():
                 raise utils.CustomError(f"The parameter {key} is missing")
             
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute("SELECT * FROM teachers WHERE email = %s", [req_data['email']])
         user = cur.fetchone()
@@ -122,7 +125,7 @@ def create_classroom(request):
                 req_data["class_id"], 
                 current_time
                 )
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(insert_query, data)
         conn.commit()
@@ -162,7 +165,7 @@ def create_test(request):
                 current_time
                 )
         print(data)
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(insert_query, data)
         conn.commit()
@@ -194,7 +197,7 @@ def assign_classrooms(request):
                 req_data["classroom_id"], 
                 req_data["student_id"]
                 )
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(insert_query, data)
         conn.commit()
@@ -224,7 +227,7 @@ def deassign_classrooms(request):
                 req_data["student_id"],
                 req_data["classroom_id"],
                 )
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(insert_query, data)
         conn.commit()
@@ -255,7 +258,7 @@ def assign_marks(request):
                 req_data["test_id"],  
                 req_data["student_id"]
                 )
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(update_query, data)
         conn.commit()
@@ -284,7 +287,7 @@ def assign_student_class_id(request):
                 req_data["student_class_id"], 
                 req_data["student_id"]
                 )
-        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        conn = psycopg2.connect('postgres_endpoint')
         cur = conn.cursor()
         cur.execute(update_query, data)
         conn.commit()
