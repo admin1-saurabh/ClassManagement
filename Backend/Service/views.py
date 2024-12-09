@@ -37,10 +37,42 @@ def get_classrooms(request):
         insert_query = '''
             select * from classrooms where teacher_id = %s;
         '''
-        print(req_data["teacher_id"])
         conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
         cur = conn.cursor()
         cur.execute(insert_query, (req_data["teacher_id"],))
+        data = cur.fetchall()
+        conn.commit()
+        conn.close()
+
+        return JsonResponse({"success":"true", "data": data})
+
+    except Exception as e:
+        return JsonResponse({"success":"false", "message":f"{e}"})
+    
+@csrf_exempt 
+def get_student_classrooms(request):
+    try:
+        if request.method != "POST":
+            raise utils.CustomError(f"Method - {request.method} is not Allowed")
+        
+        req_data = json.loads(request.body.decode('utf-8'))
+        for key in ["student_id"]:
+            if key not in req_data.keys():
+                raise utils.CustomError(f"The parameter {key} is missing")
+            
+        insert_query = '''
+            select * 
+            from classrooms 
+            where classroom_id in (
+                select distinct classroom_id
+                from classrooms_assigns
+                where student_id = %s
+            );
+        '''
+        print(req_data)
+        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        cur = conn.cursor()
+        cur.execute(insert_query, (req_data["student_id"],))
         data = cur.fetchall()
         conn.commit()
         conn.close()
@@ -92,13 +124,13 @@ def get_tests_by_date(request):
 
         upcoming_tests_query = '''
             SELECT * FROM tests 
-            WHERE classroom_id = %s AND test_date >= %s
-            ORDER BY test_date ASC
+            WHERE classroom_id = %s AND schedule_time >= %s
+            ORDER BY schedule_time ASC
         '''
         past_tests_query = '''
             SELECT * FROM tests 
-            WHERE classroom_id = %s AND test_date < %s
-            ORDER BY test_date DESC
+            WHERE classroom_id = %s AND schedule_time < %s
+            ORDER BY schedule_time DESC
         '''
 
         conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
@@ -156,10 +188,10 @@ def get_classroom_students(request):
         conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
         cur = conn.cursor()
         
-        cur.execute(fetch_classroom_students_query, req_data["classroom_id"])
+        cur.execute(fetch_classroom_students_query, (req_data["classroom_id"],))
         classroom_students = cur.fetchall()
         
-        cur.execute(fetch_rem_students_query, req_data["classroom_id"])
+        cur.execute(fetch_rem_students_query, (req_data["classroom_id"],))
         rem_students = cur.fetchall()
         
         conn.commit()
@@ -172,3 +204,46 @@ def get_classroom_students(request):
 
     except Exception as e:
         return JsonResponse({"success":"false", "message":f"{e}"})
+    
+    
+@csrf_exempt 
+def fetch_test_details(request):
+    try:
+        if request.method != "POST":
+            raise utils.CustomError(f"Method - {request.method} is not Allowed")
+        
+        req_data = json.loads(request.body.decode('utf-8'))
+        for key in ["test_id"]:
+            if key not in req_data.keys():
+                raise utils.CustomError(f"The parameter {key} is missing")
+            
+        fetch_test_details_query = '''
+            select * from tests where test_id = %s;
+        '''
+
+        fetch_test_students_query = '''
+            select * 
+            from test_attempts t join students s 
+            on t.student_id = s.student_id
+            where t.test_id = %s; 
+        '''
+        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        cur = conn.cursor()
+        
+        cur.execute(fetch_test_details_query, (req_data["test_id"],))
+        test_details = cur.fetchall()
+
+        cur.execute(fetch_test_students_query, (req_data["test_id"],))
+        student_details = cur.fetchall()
+        
+        conn.commit()
+        conn.close()
+
+        return JsonResponse({"success":"true", "data": {
+            "test_details": test_details, 
+            "student_details": student_details
+        }})
+
+    except Exception as e:
+        return JsonResponse({"success":"false", "message":f"{e}"})
+    

@@ -135,6 +135,8 @@ def create_classroom(request):
     
 @csrf_exempt 
 def create_test(request):
+    print(request.method)
+    print(json.loads(request.body.decode('utf-8')))
     try:
         if request.method != "POST":
             raise utils.CustomError(f"Method - {request.method} is not Allowed")
@@ -153,7 +155,6 @@ def create_test(request):
         req_data["schedule_time"] = datetime.strptime(req_data["schedule_time"], "%Y-%m-%d %H:%M:%S")
         data = (unique_id, 
                 req_data["classroom_id"], 
-                req_data["teacher_id"], 
                 req_data["name"], 
                 req_data["description"], 
                 req_data["max_marks"], 
@@ -203,6 +204,36 @@ def assign_classrooms(request):
 
     except Exception as e:
         return JsonResponse({"success":"false", "message":f"{e}"})
+    
+@csrf_exempt 
+def deassign_classrooms(request):
+    print(json.loads(request.body.decode('utf-8')))
+    try:
+        if request.method != "POST":
+            raise utils.CustomError(f"Method - {request.method} is not Allowed")
+        
+        req_data = json.loads(request.body.decode('utf-8'))
+        for key in ["classroom_id", "student_id"]:
+            if key not in req_data.keys():
+                raise utils.CustomError(f"The parameter {key} is missing")
+            
+        insert_query = '''
+            delete from classrooms_assigns where student_id = %s and classroom_id = %s; 
+        '''
+        data = (
+                req_data["student_id"],
+                req_data["classroom_id"],
+                )
+        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        cur = conn.cursor()
+        cur.execute(insert_query, data)
+        conn.commit()
+        conn.close()
+
+        return JsonResponse({"success":"true", "message": "Student Deassigned to classroom successfully.",  "data": data})
+
+    except Exception as e:
+        return JsonResponse({"success":"false", "message":f"{e}"})
 
 @csrf_exempt 
 def assign_marks(request):
@@ -214,9 +245,10 @@ def assign_marks(request):
         for key in ["test_id", "student_id", "marks"]:
             if key not in req_data.keys():
                 raise utils.CustomError(f"The parameter {key} is missing")
-            
+
+        print(req_data)   
         update_query = '''
-            update test_attempts set marks_obtained = %s where test_id = %s and student_id = %s
+            update test_attempts set marks_obtained = %s where test_id = %s and student_id = %s;
         '''
         data = (
                 req_data["marks"],
