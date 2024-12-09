@@ -130,3 +130,32 @@ def create_test_attempt(request):
 
     except Exception as e:
         return JsonResponse({"success":"false", "message":f"{e}"})
+    
+@csrf_exempt 
+def get_student_class_id(request):
+    try:
+        if request.method != "POST":
+            raise utils.CustomError(f"Method - {request.method} is not Allowed")
+        
+        req_data = json.loads(request.body.decode('utf-8'))
+        for key in ["student_id"]:
+            if key not in req_data.keys():
+                raise utils.CustomError(f"The parameter {key} is missing")
+            
+        insert_query = '''
+            select student_class_id from students where student_id = %s;
+        '''
+        data = (
+                req_data["student_id"], 
+                )
+        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        cur = conn.cursor()
+        cur.execute(insert_query, data)
+        data = cur.fetchall()
+        conn.commit()
+        conn.close()
+
+        return JsonResponse({"success":"true", "message": "Test attempted successfully.",  "data": data})
+
+    except Exception as e:
+        return JsonResponse({"success":"false", "message":f"{e}"})
