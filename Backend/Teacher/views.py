@@ -25,6 +25,8 @@ def ensure(request):
     
 @csrf_exempt 
 def register(request):
+    print("Entered")
+    print(request.method)
     try:
         if request.method != "POST":
             raise utils.CustomError(f"Method - {request.method} is not Allowed")
@@ -38,6 +40,7 @@ def register(request):
             INSERT INTO teachers (teacher_id, name, email, password)
             VALUES (%s, %s, %s, %s)
         '''
+        print(req_data)
         hashed_password = make_password(req_data['password'])
         unique_id = str(uuid.uuid4())
         data = (unique_id, 
@@ -51,7 +54,7 @@ def register(request):
         conn.commit()
         conn.close()
 
-        return JsonResponse({"success":"true", "message": "User created successfully.",  "user_id": unique_id, "user_type": "student"})
+        return JsonResponse({"success":"true", "message": "Teacher User created successfully.", "data": data})
 
     except Exception as e:
         return JsonResponse({"success":"false", "message":f"{e}"})
@@ -86,7 +89,7 @@ def login(request):
                     email=user[3],
                 )
                 # django_login(request, user=None) 
-                return JsonResponse({"success":"true", "message": "Login successful", "user_id": user[0], "user_type": "student"})
+                return JsonResponse({"success":"true", "message": "Login successful", "data": user})
             else:
                 return JsonResponse({"success":"false", "error": "Invalid credentials"}, status=401)
         else:
@@ -102,20 +105,21 @@ def create_classroom(request):
             raise utils.CustomError(f"Method - {request.method} is not Allowed")
         
         req_data = json.loads(request.body.decode('utf-8'))
-        for key in ["teacher_id", "name", "description"]:
+        for key in ["teacher_id", "name", "description", "class_id"]:
             if key not in req_data.keys():
                 raise utils.CustomError(f"The parameter {key} is missing")
             
         insert_query = '''
-            INSERT INTO classrooms (classroom_id, teacher_id, name, description, created_at)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO classrooms (classroom_id, teacher_id, name, description, class_id, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
         '''
         unique_id = str(uuid.uuid4())
-        current_time = datetime.datetime.now()
+        current_time = datetime.now()
         data = (unique_id, 
                 req_data["teacher_id"], 
                 req_data["name"], 
                 req_data["description"], 
+                req_data["class_id"], 
                 current_time
                 )
         conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
@@ -124,7 +128,7 @@ def create_classroom(request):
         conn.commit()
         conn.close()
 
-        return JsonResponse({"success":"true", "message": "User created successfully.",  "user_id": unique_id, "user_type": "student"})
+        return JsonResponse({"success":"true", "message": "Classroom created successfully.",  "data": data})
 
     except Exception as e:
         return JsonResponse({"success":"false", "message":f"{e}"})
@@ -136,23 +140,58 @@ def create_test(request):
             raise utils.CustomError(f"Method - {request.method} is not Allowed")
         
         req_data = json.loads(request.body.decode('utf-8'))
-        for key in ["classroom_id", "teacher_id", "name", "description", "max_marks"]:
+        for key in ["classroom_id", "teacher_id", "name", "description", "max_marks", "schedule_time"]:
             if key not in req_data.keys():
                 raise utils.CustomError(f"The parameter {key} is missing")
             
         insert_query = '''
-            INSERT INTO tests (test_id, classroom_id, teacher_id, name, description, max_marks, created_at)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO tests (test_id, classroom_id, name, description, max_marks, schedule_time, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         '''
         unique_id = str(uuid.uuid4())
-        current_time = datetime.datetime.now()
+        current_time = datetime.now()
+        req_data["schedule_time"] = datetime.strptime(req_data["schedule_time"], "%Y-%m-%d %H:%M:%S")
         data = (unique_id, 
                 req_data["classroom_id"], 
                 req_data["teacher_id"], 
                 req_data["name"], 
                 req_data["description"], 
                 req_data["max_marks"], 
+                req_data["schedule_time"], 
                 current_time
+                )
+        print(data)
+        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        cur = conn.cursor()
+        cur.execute(insert_query, data)
+        conn.commit()
+        conn.close()
+
+        return JsonResponse({"success":"true", "message": "Test created successfully.",  "data": data})
+
+    except Exception as e:
+        return JsonResponse({"success":"false", "message":f"{e}"})
+    
+@csrf_exempt 
+def assign_classrooms(request):
+    try:
+        if request.method != "POST":
+            raise utils.CustomError(f"Method - {request.method} is not Allowed")
+        
+        req_data = json.loads(request.body.decode('utf-8'))
+        for key in ["classroom_id", "student_id"]:
+            if key not in req_data.keys():
+                raise utils.CustomError(f"The parameter {key} is missing")
+            
+        insert_query = '''
+            INSERT INTO classrooms_assigns (assignment_id, classroom_id, student_id)
+            VALUES (%s, %s, %s)
+        '''
+        unique_id = str(uuid.uuid4())
+        data = (
+                unique_id, 
+                req_data["classroom_id"], 
+                req_data["student_id"]
                 )
         conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
         cur = conn.cursor()
@@ -160,11 +199,11 @@ def create_test(request):
         conn.commit()
         conn.close()
 
-        return JsonResponse({"success":"true", "message": "User created successfully.",  "user_id": unique_id, "user_type": "student"})
+        return JsonResponse({"success":"true", "message": "Student Assigned to classroom successfully.",  "data": data})
 
     except Exception as e:
         return JsonResponse({"success":"false", "message":f"{e}"})
-    
+
 @csrf_exempt 
 def assign_marks(request):
     try:
@@ -179,10 +218,9 @@ def assign_marks(request):
         update_query = '''
             update test_attempts set marks_obtained = %s where test_id = %s and student_id = %s
         '''
-        unique_id = str(uuid.uuid4())
         data = (
-                req_data["marks"], 
-                req_data["test_id"], 
+                req_data["marks"],
+                req_data["test_id"],  
                 req_data["student_id"]
                 )
         conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
@@ -191,7 +229,36 @@ def assign_marks(request):
         conn.commit()
         conn.close()
 
-        return JsonResponse({"success":"true", "message": "User created successfully.",  "user_id": unique_id, "user_type": "student"})
+        return JsonResponse({"success":"true", "message": "Marks assigned successfully.",  "data": data})
+
+    except Exception as e:
+        return JsonResponse({"success":"false", "message":f"{e}"})
+    
+@csrf_exempt 
+def assign_student_class_id(request):
+    try:
+        if request.method != "POST":
+            raise utils.CustomError(f"Method - {request.method} is not Allowed")
+        
+        req_data = json.loads(request.body.decode('utf-8'))
+        for key in ["student_id", "student_class_id"]:
+            if key not in req_data.keys():
+                raise utils.CustomError(f"The parameter {key} is missing")
+            
+        update_query = '''
+            update students set student_class_id = %s where student_id = %s
+        '''
+        data = (
+                req_data["student_class_id"], 
+                req_data["student_id"]
+                )
+        conn = psycopg2.connect('postgres://avnadmin:AVNS_Z5JtM8rzuT87CvdUQlZ@pg-30aab7f8-saurabhrajesh.f.aivencloud.com:26577/defaultdb?sslmode=require')
+        cur = conn.cursor()
+        cur.execute(update_query, data)
+        conn.commit()
+        conn.close()
+
+        return JsonResponse({"success":"true", "message": "Student Class Id assigned successfully.",  "data": data})
 
     except Exception as e:
         return JsonResponse({"success":"false", "message":f"{e}"})

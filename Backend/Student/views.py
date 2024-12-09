@@ -35,12 +35,13 @@ def register(request):
                 raise utils.CustomError(f"The parameter {key} is missing")
  
         insert_query = '''
-            INSERT INTO students (student_id, name, email, password)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO students (student_id, student_class_id, name, email, password)
+            VALUES (%s, %s, %s, %s, %s)
         '''
         hashed_password = make_password(req_data['password'])
         unique_id = str(uuid.uuid4())
         data = (unique_id, 
+                "unassigned",
                 req_data["name"], 
                 req_data["email"], 
                 hashed_password
@@ -51,7 +52,7 @@ def register(request):
         conn.commit()
         conn.close()
 
-        return JsonResponse({"success":"true", "message": "User created successfully.",  "user_id": unique_id, "user_type": "student"})
+        return JsonResponse({"success":"true", "message": "Student User created successfully.",  "data": data})
 
     except Exception as e:
         return JsonResponse({"success":"false", "message":f"{e}"})
@@ -76,7 +77,7 @@ def login(request):
         conn.close()
 
         if user:
-            user_id, hashed_password = user[0], user[3]
+            user_id, hashed_password = user[0], user[4]
             if check_password(req_data['password'], hashed_password):
                 request.session['student_id'] = user_id
                 User = get_user_model()  
@@ -86,7 +87,7 @@ def login(request):
                     email=user[3],
                 )
                 # django_login(request, user=None) 
-                return JsonResponse({"success":"true", "message": "Login successful", "user_id": user[0], "user_type": "student"})
+                return JsonResponse({"success":"true", "message": "Login successful", "data": user})
             else:
                 return JsonResponse({"success":"false", "error": "Invalid credentials"}, status=401)
         else:
@@ -102,7 +103,7 @@ def create_test_attempt(request):
             raise utils.CustomError(f"Method - {request.method} is not Allowed")
         
         req_data = json.loads(request.body.decode('utf-8'))
-        for key in ["classroom_id", "teacher_id", "name", "description", "max_marks"]:
+        for key in ["student_id", "test_id", "answer"]:
             if key not in req_data.keys():
                 raise utils.CustomError(f"The parameter {key} is missing")
             
@@ -111,7 +112,7 @@ def create_test_attempt(request):
             VALUES (%s, %s, %s, %s, %s, %s)
         '''
         unique_id = str(uuid.uuid4())
-        current_time = datetime.datetime.now()
+        current_time = datetime.now()
         data = (unique_id, 
                 req_data["test_id"], 
                 req_data["student_id"], 
@@ -125,7 +126,7 @@ def create_test_attempt(request):
         conn.commit()
         conn.close()
 
-        return JsonResponse({"success":"true", "message": "User created successfully.",  "user_id": unique_id, "user_type": "student"})
+        return JsonResponse({"success":"true", "message": "Test attempted successfully.",  "data": data})
 
     except Exception as e:
         return JsonResponse({"success":"false", "message":f"{e}"})
