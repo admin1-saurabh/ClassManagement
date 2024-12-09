@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 export default function Test({ 
+    test_id,
     name,
     description,
     maxMarks,
@@ -11,8 +12,8 @@ export default function Test({
 
   const navigate = useNavigate(); 
   const testdirect = () => {
-    localStorage.setItem('classroom_id', classroom_id); 
-    navigate("/teacher/classroom/"); 
+    localStorage.setItem('test_id', test_id); 
+    navigate("/teacher/classroom/test/"); 
   }
 
   return (
