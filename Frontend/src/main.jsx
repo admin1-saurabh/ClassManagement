@@ -6,6 +6,10 @@ import Register from './screens/Register';
 import Teacherdashboard from './screens/Teacherdashboard';
 import Studentdashboard from './screens/Studentdashboard';
 import ClassroomDashboard from './screens/Classroomdashboard';
+import TestView from './screens/TestView';
+import StudentsView from './screens/StudentsView';
+import ClassroomDashboardStudent from './screens/ClassroomDashboardStudent';
+import TestViewStudent from './screens/TestViewStudent';
 
 import {
   createBrowserRouter,
@@ -39,6 +43,22 @@ const router = createBrowserRouter([
   {
     path: "/teacher/classroom/",
     element: <ClassroomDashboard/>,
+  },
+  {
+    path: "/student/classroom/",
+    element: <ClassroomDashboardStudent/>,
+  },
+  {
+    path: "/teacher/classroom/test/",
+    element: <TestView/>,
+  },
+  {
+    path: "/student/classroom/test/",
+    element: <TestViewStudent/>,
+  },
+  {
+    path: "/teacher/classroom/students/",
+    element: <StudentsView/>,
   },
   {
     path: "/student/dashboard/",

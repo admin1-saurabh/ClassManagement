@@ -7,7 +7,10 @@ export default function Class({ classroom_id, title, description, classcode }) {
   const navigate = useNavigate(); 
   const classroomdirect = () => {
     localStorage.setItem('classroom_id', classroom_id); 
-    navigate("/teacher/classroom/"); 
+    const role = localStorage.getItem('role'); 
+    console.log(role);
+    if(role == 'teacher') navigate("/teacher/classroom/"); 
+    if(role == 'student') navigate("/student/classroom/"); 
   }
 
   return (

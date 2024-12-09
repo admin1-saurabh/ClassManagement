@@ -12,8 +12,11 @@ export default function Test({
 
   const navigate = useNavigate(); 
   const testdirect = () => {
+    const role = localStorage.getItem('role'); 
     localStorage.setItem('test_id', test_id); 
-    navigate("/teacher/classroom/test/"); 
+
+    if(role == 'teacher') navigate("/teacher/classroom/test/"); 
+    if(role == 'student') navigate("/student/classroom/test/"); 
   }
 
   return (

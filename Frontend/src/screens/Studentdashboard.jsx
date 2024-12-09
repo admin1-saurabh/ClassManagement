@@ -1,59 +1,48 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Class from '../components/Class';
 
-export default function Studentdashboard() {
-    const classes = [
-        {
-          title: "Algorithms II",
-          classcode: "CSC702",
-          description: "Dive deep into advanced algorithms with Dr. Sanjay Pratihar, exploring graph algorithms, dynamic programming, and complexity analysis.",
-        },
-        {
-          title: "Machine Learning",
-          classcode: "CSC705",
-          description: "Learn the fundamentals of supervised and unsupervised learning with Dr. Meera Sharma, including hands-on projects and real-world applications.",
-        },
-        {
-          title: "Database Systems",
-          classcode: "CSC601",
-          description: "Master relational databases, normalization, and SQL with Prof. Arjun Das, while exploring NoSQL and modern database technologies.",
-        },
-        {
-          title: "Computer Networks",
-          classcode: "CSC604",
-          description: "Understand the foundations of networking protocols, security, and cloud computing with Dr. Rajeev Ranjan.",
-        },
-        {
-          title: "Operating Systems",
-          classcode: "CSC603",
-          description: "Explore core operating system concepts like process management, scheduling, and file systems with Prof. Anita Roy.",
-        },
-      ];
-    
-      return (
-        <div className="h-full w-screen bg-gradient-to-b from-gray-200 via-cyan-100 to-gray-200">
-          <div className="w-screen px-12 pt-4">
-            <Navbar />
-          </div>
-          <div>
-            <div className="flex flex-wrap space-x-8 py-8 px-12 justify-center">
-                {classes.map((classItem, index) => (
-                    <div key={index} className="w-80">
-                    <Class
-                        title={classItem.title}
-                        classcode={classItem.classcode}
-                        description={classItem.description}
-                    />
-                    </div>
-                ))}
-                </div>
-          </div>
-          <div className='flex fixed bottom-0 right-0 z-50 m-8'>
-            <div className='px-8 py-3 bg-cyan-800 text-white rounded-2xl'>
-                + Join Class
+export default function StudentDashboard() {
+  const [classes, setClasses] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = {
+          student_id: localStorage.getItem('student_id')
+        };
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND_SERVICE_URL}service/student_classrooms/`, data);
+        console.log(response)
+        setClasses(response.data.data); 
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        alert('Failed to Get Dashboard!');
+      }
+    };
+    fetchData();
+  }, []); 
+
+  return (
+    <div className="min-h-screen w-screen bg-gradient-to-b from-gray-200 via-cyan-100 to-gray-200">
+      <div className="w-screen px-12 pt-4">
+        <Navbar />
+      </div>
+      <div>
+        <div className="flex flex-wrap space-x-8 py-8 px-12 justify-center">
+          {classes.map((classItem, index) => (
+            <div key={index} className="w-80">
+              <Class
+                classroom_id={classItem[0]}
+                title={classItem[2]}
+                classcode={classItem[4]}
+                description={classItem[3]}
+              />
             </div>
-         </div>
+          ))}
         </div>
-      );
+      </div>
+
+    </div>
+  );
 }

@@ -37,7 +37,7 @@ const TestView = () => {
       const data = {
         test_id: localStorage.getItem('test_id'),
         student_id: studentId,
-        marks: marks,
+        marks: parseInt(marks, 10),
       };
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_SERVICE_URL}teacher/assign_marks/`,
