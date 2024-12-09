@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
   const [name, setName] = useState('');
@@ -7,32 +9,38 @@ export default function Register() {
   const [role, setRole] = useState('Teacher'); // Default role
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const navigate = useNavigate(); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    data = {
+    const data = {
+        name: name, 
         email: email, 
         password: password
     }
 
-    if(role == 'Teacher'){
+    if(role === 'Teacher'){
         try {
-            const response = await axios.post(`${process.env.BACKEND_SERVICE_URL}teacher/register/`, data);
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_SERVICE_URL}teacher/register/`, data);
+            navigate("/login/");
         } catch (error) {
             console.error('Error submitting data:', error);
             alert("Failed to Login!"); 
         }
     } 
 
-    if(role == 'Student'){
+    if(role === 'Student'){
         try {
-            const response = await axios.post(`${process.env.BACKEND_SERVICE_URL}student/register/`, data);
+            const response = await axios.post(`${import.meta.env.VITE_BACKEND_SERVICE_URL}student/register/`, data);
+            navigate("/login/");
         } catch (error) {
             console.error('Error submitting data:', error);
             alert("Failed to Login!"); 
         }
     }
+
+
 
     };
 

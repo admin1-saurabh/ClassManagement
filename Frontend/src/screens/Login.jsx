@@ -2,25 +2,35 @@ import React from 'react'
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('Teacher'); // Default role
+    const navigate = useNavigate(); 
 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        data = {
+        const data = {
             email: email, 
             password: password
         }
 
         if(role == 'Teacher'){
             try {
-                const response = await axios.post(`${process.env.BACKEND_SERVICE_URL}teacher/login/`, data);
+                const response = await axios.post(`${import.meta.env.VITE_BACKEND_SERVICE_URL}teacher/login/`, data);
+                const teacher_id = response["data"]["data"][0];  
+                
+                localStorage.setItem("name", data.name)
+                localStorage.setItem("role", "teacher")
+                localStorage.setItem("email", data.email)
+                localStorage.setItem("teacher_id", teacher_id); 
+
+                navigate("/home/");
             } catch (error) {
                 console.error('Error submitting data:', error);
                 alert("Failed to Login!"); 
@@ -29,7 +39,15 @@ export default function Login() {
 
         if(role == 'Student'){
             try {
-                const response = await axios.post(`${process.env.BACKEND_SERVICE_URL}student/login/`, data);
+                const response = await axios.post(`${import.meta.env.VITE_BACKEND_SERVICE_URL}student/login/`, data);
+                const student_id = response["data"]["data"][0];  
+                
+                localStorage.setItem("name", data.name)
+                localStorage.setItem("role", "student")
+                localStorage.setItem("email", data.email)
+                localStorage.setItem("student_id", student_id); 
+                
+                navigate("/home/");
             } catch (error) {
                 console.error('Error submitting data:', error);
                 alert("Failed to Login!"); 

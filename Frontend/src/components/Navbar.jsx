@@ -12,10 +12,10 @@ export default function Navbar() {
     if (role) {
       setIsLoggedIn(true); 
     }
-  }, []);
+  }, [isLoggedIn]);
 
   const handlelogin = () => {
-    navigate("/login/");     
+    navigate("/login/");  
   }; 
 
   const handlelogout = () => {
@@ -24,6 +24,7 @@ export default function Navbar() {
     localStorage.removeItem('email'); 
 
     setIsLoggedIn(false); 
+    navigate('/home/');
   }; 
 
   return (
@@ -39,8 +40,8 @@ export default function Navbar() {
         <div>Support</div>
       </div>
       <div>
-        {isLoggedIn && <button onclick={handlelogout} className='px-8 py-2 rounded-md bg-blue-500 text-white text-lg shadow-sm'>Logout</button>}
-        {!isLoggedIn && <button onclick={handlelogin} className='px-8 py-2 rounded-md bg-blue-500 text-white text-lg shadow-sm'>Login</button>}
+        {isLoggedIn && <button onClick={handlelogout} className='px-8 py-2 rounded-md bg-blue-500 text-white text-lg shadow-sm hover:scale-105 hover:bg-blue-600'>Logout</button>}
+        {!isLoggedIn && <button onClick={handlelogin} className='px-8 py-2 rounded-md bg-blue-500 text-white text-lg shadow-sm hover:scale-105 hover:bg-blue-600'>Login</button>}
       </div>
     </div>
   )

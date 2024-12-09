@@ -5,6 +5,7 @@ import Login from './screens/Login';
 import Register from './screens/Register';
 import Teacherdashboard from './screens/Teacherdashboard';
 import Studentdashboard from './screens/Studentdashboard';
+import ClassroomDashboard from './screens/Classroomdashboard';
 
 import {
   createBrowserRouter,
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
   {
     path: "/teacher/dashboard/",
     element: <Teacherdashboard/>,
+  },
+  {
+    path: "/teacher/classroom/",
+    element: <ClassroomDashboard/>,
   },
   {
     path: "/student/dashboard/",
